@@ -11,10 +11,12 @@ import { storeAppointmentData } from "../../Redux/AppointmentSlice";
 const Calendar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { year, month } = useParams();
+  const [selectedId, setSelectedId] = useState<string>("");
+  const [actionType, setActionType] = useState<string>("");
+  const { year, month } = useParams<{ year: string; month: string }>();
   console.log(year, month);
 
-  const calendarRef = useRef<any>(null);
+  const calendarRef = useRef<FullCalendar | null>(null);
   const [modalStatus, setModalStatus] = useState<boolean>(false);
   const yearList = useSelector((state: any) => state?.appointment?.yearList);
   const monthList = useSelector((state: any) => state?.appointment?.monthList);
@@ -32,17 +34,16 @@ const Calendar = () => {
   const getData = async () => {
     try {
       const response = await axios.get(`${serverUrl}/events`);
-      // console.log(response.data);
       dispatch(storeAppointmentData(response.data));
     } catch (error) {
-      console.log("createProjectRequest error", error);
-      alert("task not create");
+      console.log("getData error", error);
+      alert("Error fetching data");
     }
   };
 
   const handleEventClick = (clickInfo: any) => {
     setModalStatus(true);
-    // setspecificid(clickInfo.event.id || 1)
+    setSelectedId(clickInfo.event.id || "");
     console.log("id--->", clickInfo.event.id);
     const { title, start, end } = clickInfo.event;
     console.log("Event clicked - Title:", title, clickInfo);
@@ -77,14 +78,17 @@ const Calendar = () => {
       <div className="mb-2 flex justify-between">
         <div className="flex">
           <div className="dropdown">
-            <label tabIndex={0} className="  bg-sky-300 btn m-1 w-48">
+            <label
+              tabIndex={0}
+              className="btn-sm hover:bg-purple-700  bg-purple-500 text-white btn m-1 w-48"
+            >
               {selectedYear}
             </label>
             <ul
               tabIndex={0}
               className="dropdown-content z-[2] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              {yearList?.map((item) => (
+              {yearList?.map((item: string) => (
                 <li
                   key={item}
                   onClick={() => {
@@ -100,14 +104,17 @@ const Calendar = () => {
           </div>
 
           <div className="dropdown">
-            <label tabIndex={1} className=" bg-sky-300 btn m-1 w-48">
+            <label
+              tabIndex={1}
+              className="btn-sm hover:bg-purple-700  bg-purple-500 text-white btn m-1 w-48"
+            >
               {selectedMonth}
             </label>
             <ul
               tabIndex={1}
               className="dropdown-content z-[2] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              {monthList?.map((item) => (
+              {monthList?.map((item: string) => (
                 <li
                   key={item}
                   onClick={() => {
@@ -125,7 +132,7 @@ const Calendar = () => {
 
         <div>
           <button
-            className="btn m-1 bg-sky-300"
+            className="btn m-1 bg-purple-500"
             onClick={() => {
               setModalStatus(true);
             }}
@@ -136,15 +143,18 @@ const Calendar = () => {
       </div>
 
       <FullCalendar
+      
         ref={calendarRef}
         plugins={[dayGridPlugin]}
-        // headerToolbar={false}
         initialView="dayGridMonth"
         events={appointmentList}
         eventClick={handleEventClick}
       />
 
       <CreateAppointmentModal
+        actionType={actionType}
+        setActionType={setActionType}
+        id={selectedId}
         modalStatus={modalStatus}
         setModalStatus={setModalStatus}
       />
@@ -153,3 +163,4 @@ const Calendar = () => {
 };
 
 export default Calendar;
+

@@ -1,7 +1,6 @@
 import axios from "axios";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { GiCancel } from "react-icons/gi";
 import { serverUrl } from "../../Redux";
 
 type AppointmentType = {
@@ -15,12 +14,42 @@ type AppointmentType = {
 const CreateAppointmentModal = ({
   modalStatus = false,
   setModalStatus,
+  id,
+  actiontype, 
+  actiontypeSeter
 }: {
   modalStatus: boolean;
+  id ?: string | number;
+  actiontype ?: string;
+  actiontypeSeter : any
   setModalStatus: Dispatch<SetStateAction<boolean>>;
 }) => {
   // const [inputFieldData, setInputFieldData] = useState<AppointmentType>();
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
+
+  const [specificdata, setspecificdata] = useState([])
+  // const onSubmit = (data: AppointmentType | any) => {
+  //   console.log(data);
+  // };
+
+
+  useEffect(() => {
+   console.log("id found -->", id);
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get(`https://apoinmentbackend.onrender.com/events/${id}`);
+        console.log('api data come', response)
+        setspecificdata(response?.data)
+        // window.location.reload()
+        
+      }
+    catch (error) {
+        console.log(error);
+        
+      }
+    };
+    fetchEvents();
+  }, [id]);
 
   const onSubmit = async (data: AppointmentType | any) => {
     console.log(data);
@@ -36,11 +65,23 @@ const CreateAppointmentModal = ({
         date: "",
         time: "",
       });
+      window.location.reload()
     } catch (error) {
       console.log("createProjectRequest error", error);
       alert("task not create");
     }
   };
+
+  useEffect(() => {
+    console.log(specificdata)
+    // Set default values for the form fields using setValue
+    setValue('name', specificdata?.title);
+    setValue('gender', specificdata?.gender);
+    setValue('time', specificdata?.time);
+    setValue('date', specificdata?.date);
+    setValue('age', specificdata?.age);
+    setspecificdata
+ }, [setValue, specificdata]);
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -60,6 +101,8 @@ const CreateAppointmentModal = ({
             className="absolute top-2 right-2 text-gray-600"
             onClick={() => {
               setModalStatus(false);
+              actiontypeSeter('')
+              reset()
             }}
           >
             <svg
@@ -135,9 +178,12 @@ const CreateAppointmentModal = ({
             placeholder="Time"
             className="input input-bordered w-full"
           />
-          <button className="btn w-full bg-blue-500 hover:bg-blue-700 text-white">
+          {
+           actiontype === "createApoinment" && <button className="btn w-full bg-purple-500 text-white">
             Create Appointment
           </button>
+          }
+          
         </form>
       </div>
     </div>

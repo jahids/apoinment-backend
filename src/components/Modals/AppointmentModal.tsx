@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from "react";
-import { GiCancel } from "react-icons/gi";
 import { useSelector } from "react-redux";
 
 const AppointmentDetailModal = ({
